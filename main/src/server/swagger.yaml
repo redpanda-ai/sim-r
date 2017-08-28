@@ -1,0 +1,97 @@
+swagger: '2.0'
+info:
+  title: sim-r, a similarity ranking microservice
+  version: "0.2"
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  # enable OAuth protection for all REST endpoints
+  # (only active if the TOKENINFO_URL environment variable is set)
+  - oauth2: [uid]
+paths:
+  /score/:
+    post:
+      tags: [Scores]
+      consumes:
+        - application/json
+      operationId: main.src.server.service.get_sen2vec_score
+      parameters:
+        - name: question
+          in: body
+          required: true
+          description: An object containing a target string and a list of candidates
+          schema:
+            $ref: "#/definitions/Question"
+      summary: Return an answer object full of scored candidate strings
+      responses:
+        200:
+          description: An object containing a list of scored candidates
+          schema:
+            $ref: "#/definitions/Answer"
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+
+definitions:
+  Question:
+    type: object
+    required:
+      - target
+      - unscored_candidates
+    properties:
+      target:
+        $ref: "#/definitions/TargetString"
+      unscored_candidates:
+        type: array
+        items:
+          $ref: "#/definitions/CandidateString"
+  ScoredCandidate:
+    type: object
+    required:
+      - candidate_string
+      - score
+    properties:
+      candidate_string:
+        $ref: "#/definitions/CandidateString"
+      score:
+        type: number
+        format: "float"
+        description: Score assigned to this candidate with respect to target
+        minimum: 0.0
+  CandidateString:
+    type: string
+    description: A string of text
+    example: "Is it snowing?"
+    pattern: "^.*$"
+    minLength: 1
+    maxLength: 1000
+  TargetString:
+    type: string
+    description: A string of text
+    example: "Is it raining?"
+    pattern: "^.*$"
+    minLength: 1
+    maxLength: 1000
+  Answer:
+    type: object
+    required:
+      - target
+      - scored_candidates
+    properties:
+      target:
+        $ref: "#/definitions/TargetString"
+      scored_candidates:
+        type: array
+        items:
+          $ref: "#/definitions/ScoredCandidate"
+
+securityDefinitions:
+  oauth2:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: https://example.com/oauth2/dialog
+    scopes:
+      uid: Unique identifier of the user accessing the service.

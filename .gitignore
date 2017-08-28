@@ -1,0 +1,6 @@
+__pycache__
+.idea/*
+*.pyc
+.ropeproject/*
+main/data/my_model*
+config.yaml
